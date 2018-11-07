@@ -44,6 +44,8 @@ class Atrium():
         self.toBeExcited = np.full(L**2, False)   ### Says whether a cell should be excited or not (boolean)
         self.latticeNums = np.arange(L**2)
         self.resting = np.full(L**2, True)
+        self.y = np.indices((self.L, self.L))[0] # y coordinate for cells
+        self.x = np.indices((self.L, self.L))[1] # x coordinate for cells
         
         ### Used for animation
         self.phases = np.full((L*L), fill_value = self.tauRefrac)   
