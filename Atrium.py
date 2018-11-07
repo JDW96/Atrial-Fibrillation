@@ -9,19 +9,18 @@ Created on Wed Nov  7 12:31:46 2018
 import numpy as np
 from line_profiler import LineProfiler
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import cPickle as pickle
 import os
 
 class Atrium():
-    def __init__(self, L = 200, nu = 0.6, nu_upRight = 0.6, nu_upLeft = 0.6, nu_parallel = 1, delta = 0.05, epsilon = 0.05, tauRefrac = 50,
+    def __init__(self, L = 200, nu = 0.6, nu_downLeft = 0.6, nu_downRight = 0.6, nu_parallel = 1, delta = 0.05, epsilon = 0.05, tauRefrac = 50,
                  tPace = 220, tTot = 10**6, seed_dysfunc = 3, seed_connections = 2, seed_prop = 4, hexagonal = False):
         
         ### Properties that are arguments
         self.L = L
         self.nu = nu
-        self.nu_upRight = nu_upRight
-        self.nu_upLeft = nu_upLeft
+        self.nu_downLeft = nu_downLeft
+        self.nu_downRight = nu_downRight
         self.nu_parallel = nu_parallel
         self.delta = 0.05
         self.epsilon = 0.05
@@ -67,26 +66,26 @@ class Atrium():
             self.connectionsRight = np.array([i + 1 if i % L != L - 1 else None for i in range(L**2)], dtype = float)
             self.connectionsLeft = np.array([i - 1 if i % L != 0 else None for i in range(L**2)], dtype = float)
             
-            connectDownLeft = np.where(rand1 <= nu)[0]
-            connectDownRight = np.where(rand2 <= nu)[0]      #### Try to make it this way to be more efficient
+            #connectDownLeft = np.where(rand1 <= nu)[0]    ### WRONG NU!!!
+            #connectDownRight = np.where(rand2 <= nu)[0]      #### Try to make it this way to be more efficient
             
             for i in range(self.L**2):
                 if (i / L) % 2 == 0:     #### Use even row rules from Elizabeth Hallowell report
-                    if rand1[i] < nu:
+                    if rand1[i] < nu_downLeft:
                         if i % self.L != 0:
                             self.connectionsDownLeft[i] = (i + L - 1) % L**2
                             self.connectionsUpRight[(i + L - 1) % L**2] = i
                         
-                    if rand2[i] < nu:
+                    if rand2[i] < nu_downRight:
                         self.connectionsDownRight[i] = (i + L) % L**2
                         self.connectionsUpLeft[(i + L) % L**2] = i
                    
                 else:        ### Use odd row rules
-                    if rand1[i] < nu:
+                    if rand1[i] < nu_downLeft:
                         self.connectionsDownLeft[i] = (i + L) % L**2
                         self.connectionsUpRight[(i + L) % L**2] = i
                     
-                    if rand2[i] < nu:
+                    if rand2[i] < nu_downRight:
                         if i % L != L - 1:
                             self.connectionsDownRight[i] = (i + L + 1) % L**2
                             self.connectionsUpLeft[(i + L + 1) % L**2] = i
@@ -112,7 +111,6 @@ class Atrium():
                 if i % L != L - 1:
                     self.connectionsRight[i] = i + 1
                     self.connectionsLeft[i + 1] = i
-        
         
         self.pacemakerDysfunc = np.array(self.pacemakerCells[self.dysfunctionalCells[self.pacemakerCells]]) ### Array of positions of all dysfunctional pacemaker cells
         self.pacemakerNormal = np.array(self.pacemakerCells[~self.dysfunctionalCells[self.pacemakerCells]])  ### ~ negates all elements in boolean array
@@ -316,7 +314,7 @@ def update(frame_number, mat, A):
     
     return mat,
 
-
+"""
 A = Atrium(tTot = 10**4)
 
 fig = plt.figure(figsize = [15,15])
@@ -327,7 +325,7 @@ mat.set_clim(0,A.tauRefrac)
 ani = animation.FuncAnimation(fig, update, frames = A.tTot,fargs = (mat,A), interval=10, repeat = None)
 plt.axis([0,A.L,0,A.L])
 plt.show()
-
+"""
 """
 for i in range(10):
     A = Atrium(seed_dysfunc = i, seed_prop = i + 1, seed_connections = i + 2)
